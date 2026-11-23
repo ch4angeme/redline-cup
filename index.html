@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>REDLINE CUP | Dota 2 Tournament</title>
+  
+  <!-- ИКОНКА АЕГИСА ВО ВКЛАДКЕ (FAVICON) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff3344' d='M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 3.18l6 3.33v4.49c0 4.18-2.67 8.09-6 9.2-3.33-1.11-6-5.02-6-9.2V8.51l6-3.33zM12 7a5 5 0 100 10 5 5 0 000-10z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-secondary: #101522;
+      --bg-card: #151b2a;
+      --accent-red: #ff3344;
+      --accent-red-glow: rgba(255, 51, 68, 0.45);
+      --accent-gold: #f5b041;
+      --accent-gold-glow: rgba(245, 176, 65, 0.35);
+      --dota-plus: #d4af37;
+      --dota-plus-glow: rgba(212, 175, 55, 0.4);
+      --text-main: #edf2f7;
+      --text-muted: #8492a6;
+      --border-color: #242e42;
+      --winner-green: #2ecc71;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 51, 68, 0.15) 0%, transparent 55%),
+        linear-gradient(to bottom, #080a10, #0c1018);
+      background-attachment: fixed;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 30px;
+      background: rgba(13, 17, 27, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .logo-svg {
+      width: 28px;
+      height: 28px;
+      filter: drop-shadow(0 0 8px var(--accent-red));
+      transition: transform 0.3s ease;
+    }
+    .logo-container:hover .logo-svg { transform: scale(1.1) rotate(6deg); }
+    .logo-text {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .logo-text span { color: var(--accent-red); }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border: 1px solid transparent;
+      background: transparent;
+      transition: all 0.25s ease;
+    }
+    .nav-tab svg { width: 16px; height: 16px; fill: currentColor; }
+    .nav-tab:hover, .nav-tab.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .nav-tab.active {
+      color: var(--accent-red);
+      border-color: rgba(255, 51, 68, 0.3);
+      background: rgba(255, 51, 68, 0.08);
+    }
+    .nav-tab.admin-btn {
+      border: 1px solid rgba(255, 51, 68, 0.5);
+      color: var(--accent-red);
+    }
+
+    .main-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 25px 20px;
+      width: 100%;
+      flex: 1;
+    }
+    .view-page { display: none; }
+    .view-page.active { display: block; animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* HERO */
+    .hero { text-align: center; padding: 25px 15px 30px; }
+    .dota-plus-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: var(--dota-plus);
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      background: rgba(212, 175, 55, 0.12);
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 0 16px var(--dota-plus-glow);
+    }
+    .dota-plus-badge svg { width: 18px; height: 18px; fill: currentColor; }
+    .hero-title {
+      font-family: 'Cinzel', serif;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, #ffffff 40%, #a0aec0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 25px;
+      line-height: 1.6;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 14px 22px;
+      border-radius: 8px;
+      min-width: 150px;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card.plus-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--dota-plus), transparent);
+    }
+    .stat-val { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .stat-val.gold { color: var(--dota-plus); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    .section-tag {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 25px 0 15px;
+      color: var(--accent-red);
+    }
+    .section-tag svg { width: 18px; height: 18px; fill: currentColor; }
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+    }
+    .rule-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .rule-box h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rule-box h3 svg { width: 16px; height: 16px; fill: var(--accent-red); }
+    .rule-box p, .rule-box ul { font-size: 13px; color: var(--text-muted); line-height: 1.6; list-style: none; }
+    .rule-box li { margin-bottom: 5px; position: relative; padding-left: 16px; }
+    .rule-box li::before { content: "▸"; position: absolute; left: 0; color: var(--accent-red); font-weight: bold; }
+
+    /* REGISTRATION */
+    .reg-section {
+      background: linear-gradient(135deg, rgba(21, 27, 42, 0.95), rgba(16, 21, 34, 0.95));
+      border: 1px solid rgba(255, 51, 68, 0.3);
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .reg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .reg-title { font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .slots-pill {
+      background: rgba(255, 51, 68, 0.15);
+      border: 1px solid rgba(255, 51, 68, 0.4);
+      color: var(--accent-red);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .reg-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .form-control {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .form-control:focus { outline: none; border-color: var(--accent-red); }
+
+    .teams-shelf {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .team-badge-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .team-badge-name { font-weight: 700; font-size: 14px; color: #fff; }
+    .team-badge-cap { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* BRACKET */
+    .bracket-stage-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      padding: 25px 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bracket-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+      width: 270px;
+      min-width: 270px;
+      position: relative;
+    }
+    .bracket-col-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 800;
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .match-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+    .match-box.gf-box {
+      border: 1px solid var(--accent-gold);
+      box-shadow: 0 0 20px var(--accent-gold-glow);
+    }
+    .match-box.gf-box .match-head {
+      color: var(--accent-gold);
+      background: rgba(245, 176, 65, 0.1);
+    }
+    .match-head {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .team-slot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .team-slot:last-child { border-bottom: none; }
+    .team-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 175px;
+    }
+    .score-badge {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      min-width: 24px;
+      text-align: center;
+    }
+    .team-slot.won { background: rgba(46, 204, 113, 0.1); color: #fff; }
+    .team-slot.won .team-label { color: #4ade80; }
+    .team-slot.won .score-badge { background: #2ecc71; color: #0a0d14; }
+    .team-slot.lost { color: #536277; }
+    .team-slot.tbd { color: #4b5563; font-style: italic; }
+
+    /* ADMIN */
+    .admin-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .admin-card h2 {
+      font-size: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+    .admin-card h2 svg { width: 18px; height: 18px; fill: var(--accent-red); }
+    .match-row-admin {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .match-row-admin:last-child { border-bottom: none; }
+    .admin-match-name { font-weight: 800; font-size: 13px; color: #fff; }
+    .admin-match-teams { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .score-input-admin {
+      width: 48px;
+      padding: 6px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      font-size: 14px;
+    }
+    .score-input-admin:focus { outline: none; border-color: var(--accent-red); }
+
+    .btn {
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn svg { width: 14px; height: 14px; fill: currentColor; }
+    .btn:hover { background: #ff4d5d; }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    .btn-danger { color: #ff3344; border-color: rgba(255, 51, 68, 0.4); }
+
+    footer {
+      text-align: center;
+      padding: 25px 15px;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border-color);
+      margin-top: auto;
+    }
+
+    /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+    @media (max-width: 768px) {
+      .navbar { padding: 12px 15px; flex-direction: column; gap: 10px; }
+      .nav-links { width: 100%; justify-content: center; }
+      .nav-tab { padding: 7px 10px; font-size: 11px; }
+      .hero-title { font-size: 30px; }
+      .hero-subtitle { font-size: 13px; }
+      .hero-stats { gap: 8px; }
+      .stat-card { flex: 1 1 45%; min-width: 130px; padding: 10px; }
+      .stat-val { font-size: 17px; }
+      .reg-form { grid-template-columns: 1fr; }
+      .reg-form .btn { width: 100%; justify-content: center; }
+      .bracket-stage-container { flex-direction: column; align-items: center; gap: 20px; }
+      .bracket-col { width: 100%; min-width: 100%; }
+      .bracket-divider-svg { display: none !important; }
+      .match-row-admin { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ШАПКА САЙТА -->
+  <header class="navbar">
+    <div class="logo-container" onclick="switchTab('main')">
+      <svg class="logo-svg" viewBox="0 0 24 24">
+        <path fill="#ff3344" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 3.18l6 3.33v4.49c0 4.18-2.67 8.09-6 9.2-3.33-1.11-6-5.02-6-9.2V8.51l6-3.33zM12 7a5 5 0 100 10 5 5 0 000-10z"/>
+      </svg>
+      <span class="logo-text">REDLINE <span>CUP</span></span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-tab active" onclick="switchTab('main')" id="tab-main">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Главная
+      </button>
+      <button class="nav-tab" onclick="switchTab('bracket')" id="tab-bracket">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
+        Сетка
+      </button>
+      <button class="nav-tab admin-btn" onclick="openAdminModal()" id="tab-admin">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        Админка 🔒
+      </button>
+    </div>
+  </header>
+
+  <!-- 1. ГЛАВНАЯ СТРАНИЦА -->
+  <div id="page-main" class="view-page active">
+    <section class="hero">
+      <div class="dota-plus-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2L4 9l4 13h8l4-13-8-7zm0 3.2L16.8 9 14 18.5h-4L7.2 9 12 5.2z"/></svg>
+        Приз: 5x Подписка Dota Plus
+      </div>
+      <h1 class="hero-title">REDLINE CUP 2026</h1>
+      <p class="hero-subtitle">
+        Турнир для 4–6 команд. Сразитесь за чемпионский кубок и получите Dota Plus на весь состав!
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat-card plus-card">
+          <div class="stat-val gold">
+            <svg style="width:18px;height:18px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2L4 9l4 13h8l4-13-8-7z"/></svg>
+            5x Dota Plus
+          </div>
+          <div class="stat-label">Приз команде</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stats-team-count">4 / 6</div>
+          <div class="stat-label">Участники</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">Bo3 / Bo5</div>
+          <div class="stat-label">Формат</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">Captains Mode</div>
+          <div class="stat-label">Режим</div>
+        </div>
+      </div>
+    </section>
+
+    <main class="main-container">
+      <section class="reg-section">
+        <div class="reg-header">
+          <div class="reg-title">
+            <svg style="width:20px;height:20px;fill:var(--accent-red)" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Регистрация команды
+          </div>
+          <div class="slots-pill" id="slots-badge">Свободно мест: 2</div>
+        </div>
+        <form class="reg-form" onsubmit="handleTeamRegister(event)">
+          <div class="form-group">
+            <label>Название команды (Tag)</label>
+            <input type="text" id="reg-team-name" class="form-control" placeholder="Например: Team Spirit" required>
+          </div>
+          <div class="form-group">
+            <label>Контакт капитана (Telegram / Discord)</label>
+            <input type="text" id="reg-captain" class="form-control" placeholder="@captain_nick" required>
+          </div>
+          <button type="submit" class="btn" style="height: 40px;">
+            <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            Записаться
+          </button>
+        </form>
+
+        <div style="margin-top: 20px;">
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 10px;">
+            Зарегистрированные команды:
+          </div>
+          <div class="teams-shelf" id="registered-teams-list"></div>
+        </div>
+      </section>
+
+      <div class="section-tag">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        Правила и регламент
+      </div>
+
+      <div class="rules-grid">
+        <div class="rule-box">
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            1. Приз турнира
+          </h3>
+          <p>Каждый игрок команды-победителя (5 человек) получает официальную подписку <strong>Dota Plus на 1 месяц</strong>.</p>
+        </div>
+        <div class="rule-box">
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
+            2. Формат матчей
+          </h3>
+          <ul>
+            <li>Полуфиналы и 3-е место: <strong>Best of 3 (до 2 побед)</strong>.</li>
+            <li>Гранд-Финал: <strong>Best of 5 (до 3 побед)</strong>.</li>
+          </ul>
+        </div>
+        <div class="rule-box">
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            3. Лобби и сервер
+          </h3>
+          <p>Сервер игры: Люксембург / Стокгольм. Режим: Captains Mode (CM). Сторона или First Pick — по /roll.</p>
+        </div>
+        <div class="rule-box">
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            4. Паузы
+          </h3>
+          <p>Ожидание команды — до 15 минут. До 10 минут паузы на карту при технических неполадках.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 2. СЕТКА ТУРНИРА -->
+  <div id="page-bracket" class="view-page">
+    <main class="main-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h1 style="font-family: 'Cinzel', serif; font-size: 24px; font-weight: 900;">ТУРНИРНАЯ СЕТКА</h1>
+          <p style="color: var(--text-muted); font-size: 13px;">Сетка рассчитывается и обновляется в реальном времени.</p>
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #2ecc71; font-weight: 700;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; display: inline-block;"></span>
+          Автообновление (Live)
+        </div>
+      </div>
+
+      <div class="bracket-stage-container" id="bracket-canvas">
+        <div class="bracket-col">
+          <div class="bracket-col-header">
+            <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
+            Полуфиналы (Bo3)
+          </div>
+          <div class="match-box" id="card-semi_1"></div>
+          <div class="match-box" id="card-semi_2"></div>
+        </div>
+
+        <div class="bracket-divider-svg" style="display:flex; align-items:center; opacity: 0.35;">
+          <svg width="40" height="220" viewBox="0 0 40 220" fill="none">
+            <path d="M0 55 H20 V110 H40" stroke="#ff3344" stroke-width="2"/>
+            <path d="M0 165 H20 V110 H40" stroke="#ff3344" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <div class="bracket-col">
+          <div class="bracket-col-header" style="color: var(--accent-gold);">
+            <svg style="width:15px;height:15px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
+            Гранд-Финал (Bo5)
+          </div>
+          <div class="match-box gf-box" id="card-grand_final"></div>
+
+          <div class="bracket-col-header" style="color: #60a5fa; margin-top: 15px;">
+            <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            Матч за 3-е место (Bo3)
+          </div>
+          <div class="match-box" id="card-bronze_match"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3. ПАНЕЛЬ УПРАВЛЕНИЯ (ЗАЩИЩЕНА ПАРОЛЕМ) -->
+  <div id="page-admin" class="view-page">
+    <main class="main-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <h1 style="font-family: 'Cinzel', serif; font-size: 22px; font-weight: 900;">ПАНЕЛЬ ОРГАНИЗАТОРА</h1>
+        <button class="btn btn-secondary btn-danger" onclick="resetScores()">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          Сбросить счёт
+        </button>
+      </div>
+
+      <div class="admin-card">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/></svg>
+          Матчи турнира (Хронологический порядок)
+        </h2>
+        <div id="admin-matches-container"></div>
+      </div>
+
+      <div class="admin-card">
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Управление участниками
+        </h2>
+        <div id="admin-teams-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>© REDLINE CUP — Турнир по Dota 2. Приз: 5x Dota Plus. Готово для GitHub Pages.</p>
+  </footer>
+
+  <!-- СКРИПТ: РАБОТАЕТ БЕЗ СЕРВЕРА ПРЯМО НА GITHUB PAGES -->
+  <script>
+    // Пароль для доступа в панель админа на GitHub Pages
+    const ADMIN_PASSWORD = "admin";
+    let isAdminUnlocked = false;
+
+    // Начальные турнирные данные
+    const defaultData = {
+      tournament_name: "REDLINE CUP",
+      prize_pool: "5x Dota Plus",
+      max_teams: 6,
+      teams: [
+        { name: "Team Spirit", captain: "@spirit_cap" },
+        { name: "Gaimin Gladiators", captain: "@gg_dota" },
+        { name: "BetBoom Team", captain: "@bb_manager" },
+        { name: "Team Liquid", captain: "@liquid_lead" }
+      ],
+      matches: {
+        semi_1: {
+          name: "Полуфинал #1",
+          format: "Bo3",
+          t1: "Team Spirit",
+          t2: "Team Liquid",
+          s1: 0, s2: 0,
+          winner: null, loser: null,
+          next_win: "grand_final", slot_win: 1,
+          next_lose: "bronze_match", slot_lose: 1
+        },
+        semi_2: {
+          name: "Полуфинал #2",
+          format: "Bo3",
+          t1: "Gaimin Gladiators",
+          t2: "BetBoom Team",
+          s1: 0, s2: 0,
+          winner: null, loser: null,
+          next_win: "grand_final", slot_win: 2,
+          next_lose: "bronze_match", slot_lose: 2
+        },
+        bronze_match: {
+          name: "Матч за 3-е место",
+          format: "Bo3",
+          t1: "TBD", t2: "TBD",
+          s1: 0, s2: 0,
+          winner: null, loser: null
+        },
+        grand_final: {
+          name: "Гранд-Финал",
+          format: "Bo5",
+          t1: "TBD", t2: "TBD",
+          s1: 0, s2: 0,
+          winner: null, loser: null
+        }
+      }
+    };
+
+    // Загрузка и сохранение состояния турнира в LocalStorage браузера
+    function getTournamentData() {
+      const saved = localStorage.getItem("redline_cup_data");
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+      return defaultData;
+    }
+
+    function saveTournamentData(data) {
+      localStorage.setItem("redline_cup_data", JSON.stringify(data));
+      renderAll();
+    }
+
+    // Алгоритм продвижения по сетке
+    function propagateTournament(matches) {
+      matches.bronze_match.t1 = "TBD";
+      matches.bronze_match.t2 = "TBD";
+      matches.grand_final.t1 = "TBD";
+      matches.grand_final.t2 = "TBD";
+
+      const order = ["semi_1", "semi_2", "bronze_match", "grand_final"];
+      order.forEach(id => {
+        const m = matches[id];
+        const s1 = parseInt(m.s1) || 0;
+        const s2 = parseInt(m.s2) || 0;
+
+        if (m.t1 !== "TBD" && m.t2 !== "TBD" && (s1 > 0 || s2 > 0) && s1 !== s2) {
+          m.winner = s1 > s2 ? m.t1 : m.t2;
+          m.loser = s1 > s2 ? m.t2 : m.t1;
+        } else {
+          m.winner = null;
+          m.loser = null;
+        }
+
+        if (m.next_win && matches[m.next_win] && m.winner) {
+          if (m.slot_win === 1) matches[m.next_win].t1 = m.winner;
+          else matches[m.next_win].t2 = m.winner;
+        }
+        if (m.next_lose && matches[m.next_lose] && m.loser) {
+          if (m.slot_lose === 1) matches[m.next_lose].t1 = m.loser;
+          else matches[m.next_lose].t2 = m.loser;
+        }
+      });
+    }
+
+    function rebuildBracketFromTeams(data) {
+      const teams = data.teams.map(t => t.name);
+      const count = teams.length;
+
+      data.matches.semi_1.t1 = count > 0 ? teams[0] : "TBD";
+      data.matches.semi_1.t2 = count > 3 ? teams[3] : (count > 1 ? teams[1] : "TBD");
+      data.matches.semi_2.t1 = count > 1 ? teams[1] : "TBD";
+      data.matches.semi_2.t2 = count > 2 ? teams[2] : "TBD";
+
+      propagateTournament(data.matches);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      const p = document.getElementById('page-' + tab);
+      const t = document.getElementById('tab-' + tab);
+      if (p) p.classList.add('active');
+      if (t) t.classList.add('active');
+    }
+
+    function openAdminModal() {
+      if (isAdminUnlocked) {
+        switchTab('admin');
+        renderAdmin();
+        return;
+      }
+      const pass = prompt("Введите пароль организатора для входа в админку (по умолчанию: admin):");
+      if (pass === ADMIN_PASSWORD) {
+        isAdminUnlocked = true;
+        switchTab('admin');
+        renderAdmin();
+      } else if (pass !== null) {
+        alert("Неверный пароль!");
+      }
+    }
+
+    function renderMatchBox(id, m) {
+      const el = document.getElementById('card-' + id);
+      if (!el || !m) return;
+
+      const t1Won = m.winner && m.winner === m.t1;
+      const t2Won = m.winner && m.winner === m.t2;
+      const t1Lost = m.loser && m.loser === m.t1;
+      const t2Lost = m.loser && m.loser === m.t2;
+
+      const c1 = m.t1 === 'TBD' ? 'tbd' : (t1Won ? 'won' : (t1Lost ? 'lost' : ''));
+      const c2 = m.t2 === 'TBD' ? 'tbd' : (t2Won ? 'won' : (t2Lost ? 'lost' : ''));
+
+      el.innerHTML = `
+        <div class="match-head">
+          <span>${m.name || id}</span>
+          <span>${m.format || 'Bo3'}</span>
+        </div>
+        <div class="team-slot ${c1}">
+          <span class="team-label" title="${m.t1}">
+            ${t1Won ? '🏆 ' : ''}${m.t1}
+          </span>
+          <span class="score-badge">${m.s1}</span>
+        </div>
+        <div class="team-slot ${c2}">
+          <span class="team-label" title="${m.t2}">
+            ${t2Won ? '🏆 ' : ''}${m.t2}
+          </span>
+          <span class="score-badge">${m.s2}</span>
+        </div>
+      `;
+    }
+
+    function renderAll() {
+      const data = getTournamentData();
+
+      // Рендер сетки
+      for (const [id, m] of Object.entries(data.matches)) {
+        renderMatchBox(id, m);
+      }
+
+      // Рендер участников
+      const count = data.teams.length;
+      document.getElementById('stats-team-count').innerText = `${count} / ${data.max_teams}`;
+      const freeSlots = data.max_teams - count;
+      document.getElementById('slots-badge').innerText = freeSlots > 0 ? `Свободно мест: ${freeSlots}` : 'Все слоты заняты';
+
+      const list = document.getElementById('registered-teams-list');
+      list.innerHTML = '';
+      data.teams.forEach((t, idx) => {
+        list.innerHTML += `
+          <div class="team-badge-card">
+            <div>
+              <div class="team-badge-name">#${idx + 1} ${t.name}</div>
+              <div class="team-badge-cap">Капитан: ${t.captain}</div>
+            </div>
+            <span style="color:#2ecc71; font-size:11px; font-weight:700;">✓ Записан</span>
+          </div>
+        `;
+      });
+    }
+
+    function renderAdmin() {
+      const data = getTournamentData();
+      const container = document.getElementById('admin-matches-container');
+      container.innerHTML = '';
+
+      const order = ["semi_1", "semi_2", "bronze_match", "grand_final"];
+      order.forEach(id => {
+        const m = data.matches[id];
+        const ready = m.t1 !== 'TBD' && m.t2 !== 'TBD';
+        const winInfo = m.winner ? `<span style="color:#2ecc71; font-weight:700; margin-left:8px;">Победитель: ${m.winner}</span>` : '';
+
+        container.innerHTML += `
+          <div class="match-row-admin">
+            <div>
+              <div class="admin-match-name">${m.name} (${m.format})</div>
+              <div class="admin-match-teams">
+                <strong>${m.t1}</strong> vs <strong>${m.t2}</strong> ${winInfo}
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px;">
+              <input type="number" min="0" max="3" id="s1-${id}" class="score-input-admin" value="${m.s1}" ${!ready ? 'disabled' : ''}>
+              <span style="font-weight:700;">:</span>
+              <input type="number" min="0" max="3" id="s2-${id}" class="score-input-admin" value="${m.s2}" ${!ready ? 'disabled' : ''}>
+              <button class="btn" style="padding: 6px 12px;" onclick="updateMatchScore('${id}')" ${!ready ? 'disabled' : ''}>
+                OK
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      const teamsList = document.getElementById('admin-teams-list');
+      teamsList.innerHTML = '';
+      data.teams.forEach((t, i) => {
+        teamsList.innerHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color);">
+            <span style="font-size:13px;">#${i+1} <strong>${t.name}</strong> (${t.captain})</span>
+            <button class="btn btn-secondary btn-danger" style="padding:4px 8px; font-size:11px;" onclick="removeTeam(${i})">Удалить</button>
+          </div>
+        `;
+      });
+    }
+
+    function handleTeamRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-team-name').value.trim();
+      const captain = document.getElementById('reg-captain').value.trim();
+      if (!name || !captain) return;
+
+      const data = getTournamentData();
+      if (data.teams.length >= data.max_teams) {
+        alert("Достигнут максимум команд (" + data.max_teams + ")!");
+        return;
+      }
+
+      data.teams.push({ name, captain });
+      rebuildBracketFromTeams(data);
+      saveTournamentData(data);
+
+      alert("🎉 Команда " + name + " успешно записана на REDLINE CUP!");
+      document.getElementById('reg-team-name').value = '';
+      document.getElementById('reg-captain').value = '';
+    }
+
+    function updateMatchScore(matchId) {
+      const data = getTournamentData();
+      const s1 = parseInt(document.getElementById('s1-' + matchId).value) || 0;
+      const s2 = parseInt(document.getElementById('s2-' + matchId).value) || 0;
+
+      data.matches[matchId].s1 = s1;
+      data.matches[matchId].s2 = s2;
+      propagateTournament(data.matches);
+      saveTournamentData(data);
+      renderAdmin();
+    }
+
+    function removeTeam(index) {
+      if (!confirm("Удалить эту команду из турнира?")) return;
+      const data = getTournamentData();
+      data.teams.splice(index, 1);
+      rebuildBracketFromTeams(data);
+      saveTournamentData(data);
+      renderAdmin();
+    }
+
+    function resetScores() {
+      if (!confirm("Обнулить результаты всех матчей?")) return;
+      const data = getTournamentData();
+      for (const m of Object.values(data.matches)) {
+        m.s1 = 0;
+        m.s2 = 0;
+        m.winner = null;
+        m.loser = null;
+      }
+      propagateTournament(data.matches);
+      saveTournamentData(data);
+      renderAdmin();
+    }
+
+    // Инициализация при загрузке страницы
+    renderAll();
+  </script>
+</body>
+</html>
