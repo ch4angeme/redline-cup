@@ -704,6 +704,9 @@
     const ADMIN_PASSWORD = "admin";
     let isAdminUnlocked = false;
 
+    // Глобальный канал облачной синхронизации между всеми устройствами в мире
+    const CLOUD_SYNC_CHANNEL = "https://ntfy.sh/redline_cup_ch4angeme_state";
+
     // Хранилище команд и турнирных данных в памяти JS
     let currentTournamentData = null;
 
@@ -756,7 +759,7 @@
       }
     };
 
-    // Загрузка и сохранение состояния турнира в LocalStorage браузера
+    // Загрузка состояния турнира из памяти / localStorage
     function getTournamentData() {
       if (currentTournamentData) {
         return currentTournamentData;
@@ -777,29 +780,79 @@
       return currentTournamentData;
     }
 
+    // Сохранение локально + мгновенная отправка в глобальное облако для всех устройств
     function saveTournamentData(data) {
       currentTournamentData = data;
       try {
         localStorage.setItem("redline_cup_data", JSON.stringify(data));
-      } catch (e) {
-        console.warn("Ошибка сохранения в localStorage:", e);
-      }
+      } catch (e) {}
+
       renderAll();
       if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
         renderAdmin();
       }
+
+      // Глобальная трансляция всем зрителям на GitHub
+      pushToCloud(data);
     }
 
-    // Слушатель изменений из других вкладок (storage event) для живого обновления списка
+    // Отправка в глобальное облако
+    async function pushToCloud(data) {
+      try {
+        await fetch(CLOUD_SYNC_CHANNEL, {
+          method: "POST",
+          headers: {
+            "Title": "STATE_UPDATE",
+            "Cache": "yes"
+          },
+          body: JSON.stringify(data)
+        });
+      } catch (err) {
+        console.warn("Ошибка облачной синхронизации:", err);
+      }
+    }
+
+    // Фоновая загрузка актуального состояния из облака при открытии или по таймеру
+    async function fetchCloudData() {
+      try {
+        const response = await fetch(CLOUD_SYNC_CHANNEL + "/json?poll=1");
+        if (!response.ok) return;
+        const text = await response.text();
+        if (!text.trim()) return;
+
+        const lines = text.trim().split("\n");
+        const lastMsg = JSON.parse(lines[lines.length - 1]);
+        if (lastMsg && lastMsg.message) {
+          const remoteData = JSON.parse(lastMsg.message);
+          if (remoteData && Array.isArray(remoteData.teams)) {
+            currentTournamentData = remoteData;
+            try {
+              localStorage.setItem("redline_cup_data", JSON.stringify(remoteData));
+            } catch (e) {}
+            renderAll();
+            if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
+              renderAdmin();
+            }
+          }
+        }
+      } catch (err) {
+        // Оффлайн или ожидание
+      }
+    }
+
+    // Слушатель изменений из других вкладок браузера
     window.addEventListener('storage', function(e) {
       if (e.key === "redline_cup_data") {
-        currentTournamentData = null; // сбрасываем кэш, читаем свежее
+        currentTournamentData = null;
         renderAll();
         if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
           renderAdmin();
         }
       }
     });
+
+    // Регулярная проверка обновлений из облака (каждые 3 секунды)
+    setInterval(fetchCloudData, 3000);
 
     // Алгоритм продвижения по сетке
     function propagateTournament(matches) {
@@ -1037,8 +1090,9 @@
       renderAdmin();
     }
 
-    // Инициализация при загрузке страницы
+    // Инициализация при загрузке страницы: локальный рендер + сразу подтягивание данных из облака
     renderAll();
+    fetchCloudData();
   </script>
 </body>
 </html>
