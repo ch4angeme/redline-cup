@@ -710,6 +710,57 @@
     // Хранилище команд и турнирных данных в памяти JS
     let currentTournamentData = null;
 
+    // Начальные турнирные данные (дефолтные, если в облаке и localStorage пусто)
+    const defaultData = {
+      tournament_name: "REDLINE CUP",
+      prize_pool: "5x Dota Plus",
+      max_teams: 6,
+      teams: [
+        { name: "team sisi", captain: "q1ntix_rofl" },
+        { name: "Team Pepsi", captain: "@emilma11" },
+        { name: "Team Sexyk", captain: "@chlenixxx" },
+        { name: "team popa", captain: "qwinti" },
+        { name: "KKK", captain: "@knnotmak" }
+      ],
+      matches: {
+        semi_1: {
+          name: "Полуфинал #1",
+          format: "Bo3",
+          t1: "team sisi",
+          t2: "team popa",
+          s1: 0, s2: 0,
+          winner: null, loser: null,
+          next_win: "grand_final", slot_win: 1,
+          next_lose: "bronze_match", slot_lose: 1
+        },
+        semi_2: {
+          name: "Полуфинал #2",
+          format: "Bo3",
+          t1: "Team Pepsi",
+          t2: "Team Sexyk",
+          s1: 0, s2: 0,
+          winner: null, loser: null,
+          next_win: "grand_final", slot_win: 2,
+          next_lose: "bronze_match", slot_lose: 2
+        },
+        bronze_match: {
+          name: "Матч за 3-е место",
+          format: "Bo3",
+          t1: "TBD", t2: "TBD",
+          s1: 0, s2: 0,
+          winner: null, loser: null
+        },
+        grand_final: {
+          name: "Гранд-Финал",
+          format: "Bo5",
+          t1: "TBD", t2: "TBD",
+          s1: 0, s2: 0,
+          winner: null, loser: null
+        }
+      },
+      updated_at: 0
+    };
+
     // Загрузка состояния турнира из памяти / localStorage
     function getTournamentData() {
       if (currentTournamentData) {
@@ -733,6 +784,7 @@
 
     // Сохранение локально + мгновенная отправка в глобальное облако для всех устройств
     function saveTournamentData(data) {
+      data.updated_at = Date.now();
       currentTournamentData = data;
       try {
         localStorage.setItem("redline_cup_data", JSON.stringify(data));
@@ -771,14 +823,33 @@
         const text = await response.text();
         if (!text.trim()) return;
 
-        const lines = text.trim().split("\n");
-        const lastMsg = JSON.parse(lines[lines.length - 1]);
-        if (lastMsg && lastMsg.message) {
-          const remoteData = JSON.parse(lastMsg.message);
-          if (remoteData && Array.isArray(remoteData.teams)) {
-            currentTournamentData = remoteData;
+        const rawLines = text.trim().split("\n");
+        let newestData = null;
+
+        rawLines.forEach(line => {
+          line = line.trim();
+          if (!line) return;
+          try {
+            const item = JSON.parse(line);
+            if (item.event === 'message') {
+              const parsed = JSON.parse(item.message);
+              if (parsed && Array.isArray(parsed.teams) && parsed.matches) {
+                // Если у сообщения есть метка времени, берем самое свежее
+                if (!newestData || (parsed.updated_at || 0) >= (newestData.updated_at || 0)) {
+                  newestData = parsed;
+                }
+              }
+            }
+          } catch(e) {}
+        });
+
+        if (newestData) {
+          const currentLocal = getTournamentData();
+          // Применяем из облака, если в облаке версия новее или равна локальной
+          if (!currentLocal.updated_at || (newestData.updated_at || 0) >= currentLocal.updated_at) {
+            currentTournamentData = newestData;
             try {
-              localStorage.setItem("redline_cup_data", JSON.stringify(remoteData));
+              localStorage.setItem("redline_cup_data", JSON.stringify(newestData));
             } catch (e) {}
             renderAll();
             if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
@@ -812,37 +883,68 @@
       matches.grand_final.t1 = "TBD";
       matches.grand_final.t2 = "TBD";
 
-      const order = ["semi_1", "semi_2", "bronze_match", "grand_final"];
-      order.forEach(id => {
-        const m = matches[id];
-        const s1 = parseInt(m.s1) || 0;
-        const s2 = parseInt(m.s2) || 0;
+      // 1. Сначала определяем победителя и проигравшего в Полуфинале #1
+      const semi1 = matches.semi_1;
+      const s1_1 = parseInt(semi1.s1) || 0;
+      const s1_2 = parseInt(semi1.s2) || 0;
+      if (semi1.t1 !== "TBD" && semi1.t2 !== "TBD" && (s1_1 > 0 || s1_2 > 0) && s1_1 !== s1_2) {
+        semi1.winner = s1_1 > s1_2 ? semi1.t1 : semi1.t2;
+        semi1.loser = s1_1 > s1_2 ? semi1.t2 : semi1.t1;
+      } else {
+        semi1.winner = null;
+        semi1.loser = null;
+      }
+      if (semi1.winner) matches.grand_final.t1 = semi1.winner;
+      if (semi1.loser) matches.bronze_match.t1 = semi1.loser;
 
-        if (m.t1 !== "TBD" && m.t2 !== "TBD" && (s1 > 0 || s2 > 0) && s1 !== s2) {
-          m.winner = s1 > s2 ? m.t1 : m.t2;
-          m.loser = s1 > s2 ? m.t2 : m.t1;
-        } else {
-          m.winner = null;
-          m.loser = null;
-        }
+      // 2. Затем определяем победителя и проигравшего в Полуфинале #2
+      const semi2 = matches.semi_2;
+      const s2_1 = parseInt(semi2.s1) || 0;
+      const s2_2 = parseInt(semi2.s2) || 0;
+      if (semi2.t1 !== "TBD" && semi2.t2 !== "TBD" && (s2_1 > 0 || s2_2 > 0) && s2_1 !== s2_2) {
+        semi2.winner = s2_1 > s2_2 ? semi2.t1 : semi2.t2;
+        semi2.loser = s2_1 > s2_2 ? semi2.t2 : semi2.t1;
+      } else {
+        semi2.winner = null;
+        semi2.loser = null;
+      }
+      if (semi2.winner) matches.grand_final.t2 = semi2.winner;
+      if (semi2.loser) matches.bronze_match.t2 = semi2.loser;
 
-        if (m.next_win && matches[m.next_win] && m.winner) {
-          if (m.slot_win === 1) matches[m.next_win].t1 = m.winner;
-          else matches[m.next_win].t2 = m.winner;
-        }
-        if (m.next_lose && matches[m.next_lose] && m.loser) {
-          if (m.slot_lose === 1) matches[m.next_lose].t1 = m.loser;
-          else matches[m.next_lose].t2 = m.loser;
-        }
-      });
+      // 3. Матч за 3-е место
+      const bronze = matches.bronze_match;
+      const b_s1 = parseInt(bronze.s1) || 0;
+      const b_s2 = parseInt(bronze.s2) || 0;
+      if (bronze.t1 !== "TBD" && bronze.t2 !== "TBD" && (b_s1 > 0 || b_s2 > 0) && b_s1 !== b_s2) {
+        bronze.winner = b_s1 > b_s2 ? bronze.t1 : bronze.t2;
+        bronze.loser = b_s1 > b_s2 ? bronze.t2 : bronze.t1;
+      } else {
+        bronze.winner = null;
+        bronze.loser = null;
+      }
+
+      // 4. Гранд-Финал
+      const gf = matches.grand_final;
+      const gf_s1 = parseInt(gf.s1) || 0;
+      const gf_s2 = parseInt(gf.s2) || 0;
+      if (gf.t1 !== "TBD" && gf.t2 !== "TBD" && (gf_s1 > 0 || gf_s2 > 0) && gf_s1 !== gf_s2) {
+        gf.winner = gf_s1 > gf_s2 ? gf.t1 : gf.t2;
+        gf.loser = gf_s1 > gf_s2 ? gf.t2 : gf.t1;
+      } else {
+        gf.winner = null;
+        gf.loser = null;
+      }
     }
 
     function rebuildBracketFromTeams(data) {
       const teams = data.teams.map(t => t.name);
       const count = teams.length;
 
+      // Полуфинал 1: Команда #1 против Команды #4 (или #2 если всего 2)
       data.matches.semi_1.t1 = count > 0 ? teams[0] : "TBD";
       data.matches.semi_1.t2 = count > 3 ? teams[3] : (count > 1 ? teams[1] : "TBD");
+
+      // Полуфинал 2: Команда #2 против Команды #3
       data.matches.semi_2.t1 = count > 1 ? teams[1] : "TBD";
       data.matches.semi_2.t2 = count > 2 ? teams[2] : "TBD";
 
