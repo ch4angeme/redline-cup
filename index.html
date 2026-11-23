@@ -860,7 +860,7 @@
         renderAdmin();
         return;
       }
-      const pass = prompt("Введите пароль организатора для входа в админку (по умолчанию: admin):");
+      const pass = prompt("Введите пароль организатора для входа в админку:");
       if (pass === ADMIN_PASSWORD) {
         isAdminUnlocked = true;
         switchTab('admin');
