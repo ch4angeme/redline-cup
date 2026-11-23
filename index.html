@@ -518,7 +518,7 @@
       </div>
       <h1 class="hero-title">REDLINE CUP 2026</h1>
       <p class="hero-subtitle">
-        Турнир для 4 команд. Сразитесь за чемпионский кубок и получите Dota Plus на весь состав!
+        Турнир для 4–6 команд. Сразитесь за чемпионский кубок и получите Dota Plus на весь состав!
       </p>
 
       <div class="hero-stats">
@@ -704,6 +704,9 @@
     const ADMIN_PASSWORD = "admin";
     let isAdminUnlocked = false;
 
+    // Хранилище команд и турнирных данных в памяти JS
+    let currentTournamentData = null;
+
     // Начальные турнирные данные
     const defaultData = {
       tournament_name: "REDLINE CUP",
@@ -755,17 +758,48 @@
 
     // Загрузка и сохранение состояния турнира в LocalStorage браузера
     function getTournamentData() {
-      const saved = localStorage.getItem("redline_cup_data");
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
+      if (currentTournamentData) {
+        return currentTournamentData;
       }
-      return defaultData;
+      try {
+        const saved = localStorage.getItem("redline_cup_data");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && Array.isArray(parsed.teams)) {
+            currentTournamentData = parsed;
+            return currentTournamentData;
+          }
+        }
+      } catch (e) {
+        console.warn("Ошибка чтения localStorage:", e);
+      }
+      currentTournamentData = JSON.parse(JSON.stringify(defaultData));
+      return currentTournamentData;
     }
 
     function saveTournamentData(data) {
-      localStorage.setItem("redline_cup_data", JSON.stringify(data));
+      currentTournamentData = data;
+      try {
+        localStorage.setItem("redline_cup_data", JSON.stringify(data));
+      } catch (e) {
+        console.warn("Ошибка сохранения в localStorage:", e);
+      }
       renderAll();
+      if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
+        renderAdmin();
+      }
     }
+
+    // Слушатель изменений из других вкладок (storage event) для живого обновления списка
+    window.addEventListener('storage', function(e) {
+      if (e.key === "redline_cup_data") {
+        currentTournamentData = null; // сбрасываем кэш, читаем свежее
+        renderAll();
+        if (document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) {
+          renderAdmin();
+        }
+      }
+    });
 
     // Алгоритм продвижения по сетке
     function propagateTournament(matches) {
@@ -826,7 +860,7 @@
         renderAdmin();
         return;
       }
-      const pass = prompt("Введите пароль организатора для входа в админку:");
+      const pass = prompt("Введите пароль организатора для входа в админку (по умолчанию: admin):");
       if (pass === ADMIN_PASSWORD) {
         isAdminUnlocked = true;
         switchTab('admin');
@@ -952,11 +986,18 @@
         return;
       }
 
+      // Проверка на дублирование названия команды
+      if (data.teams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+        alert("Команда с названием «" + name + "» уже зарегистрирована!");
+        return;
+      }
+
+      // Добавляем новую команду в динамический массив
       data.teams.push({ name, captain });
       rebuildBracketFromTeams(data);
       saveTournamentData(data);
 
-      alert("🎉 Команда " + name + " успешно записана на REDLINE CUP!");
+      alert("🎉 Команда «" + name + "» успешно записана на REDLINE CUP!");
       document.getElementById('reg-team-name').value = '';
       document.getElementById('reg-captain').value = '';
     }
