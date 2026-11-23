@@ -710,55 +710,6 @@
     // Хранилище команд и турнирных данных в памяти JS
     let currentTournamentData = null;
 
-    // Начальные турнирные данные
-    const defaultData = {
-      tournament_name: "REDLINE CUP",
-      prize_pool: "5x Dota Plus",
-      max_teams: 6,
-      teams: [
-        { name: "Team Spirit", captain: "@spirit_cap" },
-        { name: "Gaimin Gladiators", captain: "@gg_dota" },
-        { name: "BetBoom Team", captain: "@bb_manager" },
-        { name: "Team Liquid", captain: "@liquid_lead" }
-      ],
-      matches: {
-        semi_1: {
-          name: "Полуфинал #1",
-          format: "Bo3",
-          t1: "Team Spirit",
-          t2: "Team Liquid",
-          s1: 0, s2: 0,
-          winner: null, loser: null,
-          next_win: "grand_final", slot_win: 1,
-          next_lose: "bronze_match", slot_lose: 1
-        },
-        semi_2: {
-          name: "Полуфинал #2",
-          format: "Bo3",
-          t1: "Gaimin Gladiators",
-          t2: "BetBoom Team",
-          s1: 0, s2: 0,
-          winner: null, loser: null,
-          next_win: "grand_final", slot_win: 2,
-          next_lose: "bronze_match", slot_lose: 2
-        },
-        bronze_match: {
-          name: "Матч за 3-е место",
-          format: "Bo3",
-          t1: "TBD", t2: "TBD",
-          s1: 0, s2: 0,
-          winner: null, loser: null
-        },
-        grand_final: {
-          name: "Гранд-Финал",
-          format: "Bo5",
-          t1: "TBD", t2: "TBD",
-          s1: 0, s2: 0,
-          winner: null, loser: null
-        }
-      }
-    };
-
     // Загрузка состояния турнира из памяти / localStorage
     function getTournamentData() {
       if (currentTournamentData) {
